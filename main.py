@@ -24,13 +24,37 @@ class Uber():
         payload = {"type":"pickup","q":query,"locale":"en","lat":31.495426,"long":74.38436}
         res = self.ses.post(url,json=payload)
         cands = res.json()['data']['candidates']
-        for c in cands:
-            print(c['addressLine1']+"\n"+c['addressLine2'])
+        if len(cands):
+            return cands[0]
+        return False
+    def get_detail(self,type,id,provider):
+        url = "https://www.uber.com/api/loadFEPlaceDetails?localeCode=en"
+        payload = {
+            "type": type,
+            "locale": "en",
+            "id": id,
+            "provider": provider
+        }
+        res = self.ses.post(url, json=payload)
+        if res.status_code == 200:
+            data = res['data']
+            return {
+                "id": data['id'],
+                "provider": data['provider'],
+                "locale": "en",
+                "latitude": data['lat'],
+                "longitude": data['long']
+            }
+
+
+    
         
 
 Uber().get_suggestions('minar Pakistan')
 
 
+
+#### ESTIMATE ####
 
 # url = "https://www.uber.com/api/loadFEEstimates"
 
@@ -38,22 +62,42 @@ Uber().get_suggestions('minar Pakistan')
 
 # payload = {
 #     "origin": {
-#         "id": "a8180d56-e4b3-1dbb-c6fd-02460cea6bd4",
-#         "provider": "uber_places",
+#         "id": "ChIJayiDCf0FGTkR2T-F1Jn-TSc",
+#         "provider": "google_places",
 #         "locale": "en",
-#         "latitude": 40.791419,
-#         "longitude": -74.014679
+#         "latitude": 31.4821489,
+#         "longitude": 74.3964343
 #     },
 #     "destination": {
-#         "id": "061daaf7-18b1-cf42-634e-ed73a13d09c3",
-#         "provider": "uber_places",
+#         "id": "ChIJq6qqqncGGTkRaRSUZur4bBQ",
+#         "provider": "google_places",
 #         "locale": "en",
-#         "latitude": 40.794691,
-#         "longitude": -74.0228919
+#         "latitude": 31.481977,
+#         "longitude": 74.3962095
 #     },
 #     "locale": "en"
 # }
 
-# response = requests.request("POST", url, json=payload, params=querystring)
+
+# response = requests.request("POST", url, json=payload, headers=headers, params=querystring)
+
+# print(response.text)
+
+
+
+##### Place Detail ####
+# url = "https://www.uber.com/api/loadFEPlaceDetails"
+
+# querystring = {"localeCode":"en"}
+
+# payload = {
+#     "type": "pickup",
+#     "locale": "en",
+#     "id": "ChIJayiDCf0FGTkR2T-F1Jn-TSc",
+#     "provider": "google_places"
+# }
+
+
+# response = requests.request("POST", url, json=payload, headers=headers, params=querystring)
 
 # print(response.text)

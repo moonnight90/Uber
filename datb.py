@@ -1,7 +1,5 @@
 import sqlite3
 from datetime import datetime
-
-# Connect to the SQLite database file or create it if it doesn't exist
 conn = sqlite3.connect('vehicles_data.sqlite3')
 cursor = conn.cursor()
 

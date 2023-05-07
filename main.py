@@ -1,5 +1,35 @@
 import requests
 from datetime import datetime
+import sqlite3
+
+
+def create_vehicle_table(vehicle_type):
+    cursor.execute(f'''
+        CREATE TABLE IF NOT EXISTS {vehicle_type} (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            time_of_entry TEXT,
+            origination_address TEXT,
+            destination_address TEXT,
+            min_price TEXT,
+            max_price TEXT
+        );
+    ''')
+    conn.commit()
+
+def insert_data(vehicle_type, origination, destination, min_price, max_price):
+    time_of_entry = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    cursor.execute(f'''
+        INSERT INTO {vehicle_type} (time_of_entry, origination_address, destination_address, min_price, max_price)
+        VALUES (?, ?, ?, ?, ?);
+    ''', (time_of_entry, origination, destination, min_price, max_price))
+    conn.commit()
+
+
+def get_table_names():
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    table_names = [row[0] for row in cursor.fetchall()]
+    return table_names
+
 class Uber():
     def __init__(self) -> None:
         self.ses = requests.Session()
@@ -79,19 +109,24 @@ class Uber():
         results = list(self.load_estimate(payload))
 
         for result in results:
-            # print(datetime.now().strftime('%Y-%m-%d %H:%M:%S'),result[0],result[1],destination[1],pickup[1])
-            print(result[1])
-            print(self.split_price(result[1]))
-
-
-
-        
+            [min,max] = self.split_price(result[1])
+            vehical = result[0]
+            vehical = vehical.replace(' ','_')
+            print(vehical,min,max,destination[1],pickup[1])
+            if vehical not in existed_tables:
+                create_vehicle_table(vehical)
+                existed_tables.append(vehical)
+            insert_data(vehical,pickup[1],destination[1],min,max)
+            
+            
+if __name__ == "__main__":
     
+    conn = sqlite3.connect('vehicles_data.sqlite3')
+    cursor = conn.cursor()
+    existed_tables = get_table_names()
+    Uber().run('Botany Road & Southern Cross','Belrose, NSW')
+
+
         
 
-
-    
-        
-
-Uber().run('Sfdg, 3 Rue de lArrivée, Paris','Français du monde - ADFE, 62 Bd Ga')
 

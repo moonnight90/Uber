@@ -1,5 +1,4 @@
 import requests
-import json
 class Uber():
     def __init__(self) -> None:
         self.ses = requests.Session()

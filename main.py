@@ -1,5 +1,5 @@
 import requests
-
+import json
 class Uber():
     def __init__(self) -> None:
         self.ses = requests.Session()
@@ -25,7 +25,10 @@ class Uber():
         res = self.ses.post(url,json=payload)
         cands = res.json()['data']['candidates']
         if len(cands):
-            return cands[0]
+            return {
+                "id":cands[0]['id'],
+                "provider":cands[0]['provider'],
+            }
         return False
     def get_detail(self,type,id,provider):
         url = "https://www.uber.com/api/loadFEPlaceDetails?localeCode=en"
@@ -37,7 +40,9 @@ class Uber():
         }
         res = self.ses.post(url, json=payload)
         if res.status_code == 200:
+            res = res.json()
             data = res['data']
+            
             return {
                 "id": data['id'],
                 "provider": data['provider'],
@@ -45,12 +50,33 @@ class Uber():
                 "latitude": data['lat'],
                 "longitude": data['long']
             }
+    def load_estimate(self,payload):
+        res = self.ses.post("https://www.uber.com/api/loadFEEstimates?localeCode=en",
+                      json=payload
+                      )
+        prices = res.json()['data']['prices']
+        for price in prices:
+            print(price['vehicleViewDisplayName'],price['fareString'])
+    def run(self,pickup,destination):
+        res = self.get_suggestions(pickup)
+        pickup = self.get_detail('pickup',res['id'],res['provider'])
+        res = self.get_suggestions(destination)
+        destination = self.get_detail('destination',res['id'],res['provider'])
+        payload = {
+            "destination":destination,
+            'origin': pickup,
+            "locale":"en"
+        }
+        self.load_estimate(payload)
+        
+    
+        
 
 
     
         
 
-Uber().get_suggestions('minar Pakistan')
+Uber().run('Lahore Ring Road, Lahore Ring Rd','Lahore Zoo, 92 - Shahrah-')
 
 
 

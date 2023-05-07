@@ -1,4 +1,5 @@
 import requests
+from datetime import datetime
 class Uber():
     def __init__(self) -> None:
         self.ses = requests.Session()
@@ -18,6 +19,15 @@ class Uber():
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
             "x-csrf-token": "x"
             })
+    def split_price(self,string):
+        allowed_chars = "0123456789.-"
+        string = "".join([char for char in string if char in allowed_chars])
+        min_max = string.split('-')
+        if len(min_max)==1:
+            min_max.append('0')
+        return min_max
+
+
     def get_suggestions(self,query):
         url = 'https://www.uber.com/api/loadFESuggestions?localeCode=en'
         payload = {"type":"pickup","q":query,"locale":"en","lat":31.495426,"long":74.38436}
@@ -48,25 +58,33 @@ class Uber():
                 "locale": "en",
                 "latitude": data['lat'],
                 "longitude": data['long']
-            }
+            },data['fullAddress']
     def load_estimate(self,payload):
         res = self.ses.post("https://www.uber.com/api/loadFEEstimates?localeCode=en",
                       json=payload
                       )
         prices = res.json()['data']['prices']
         for price in prices:
-            print(price['vehicleViewDisplayName'],price['fareString'])
+            yield (price['vehicleViewDisplayName'],price['fareString'])
     def run(self,pickup,destination):
         res = self.get_suggestions(pickup)
         pickup = self.get_detail('pickup',res['id'],res['provider'])
         res = self.get_suggestions(destination)
         destination = self.get_detail('destination',res['id'],res['provider'])
         payload = {
-            "destination":destination,
-            'origin': pickup,
+            "destination":destination[0],
+            'origin': pickup[0],
             "locale":"en"
         }
-        self.load_estimate(payload)
+        results = list(self.load_estimate(payload))
+
+        for result in results:
+            # print(datetime.now().strftime('%Y-%m-%d %H:%M:%S'),result[0],result[1],destination[1],pickup[1])
+            print(result[1])
+            print(self.split_price(result[1]))
+
+
+
         
     
         
@@ -75,54 +93,5 @@ class Uber():
     
         
 
-Uber().run('Lahore Ring Road, Lahore Ring Rd','Lahore Zoo, 92 - Shahrah-')
+Uber().run('Sfdg, 3 Rue de lArrivée, Paris','Français du monde - ADFE, 62 Bd Ga')
 
-
-
-#### ESTIMATE ####
-
-# url = "https://www.uber.com/api/loadFEEstimates"
-
-# querystring = {"localeCode":"en"}
-
-# payload = {
-#     "origin": {
-#         "id": "ChIJayiDCf0FGTkR2T-F1Jn-TSc",
-#         "provider": "google_places",
-#         "locale": "en",
-#         "latitude": 31.4821489,
-#         "longitude": 74.3964343
-#     },
-#     "destination": {
-#         "id": "ChIJq6qqqncGGTkRaRSUZur4bBQ",
-#         "provider": "google_places",
-#         "locale": "en",
-#         "latitude": 31.481977,
-#         "longitude": 74.3962095
-#     },
-#     "locale": "en"
-# }
-
-
-# response = requests.request("POST", url, json=payload, headers=headers, params=querystring)
-
-# print(response.text)
-
-
-
-##### Place Detail ####
-# url = "https://www.uber.com/api/loadFEPlaceDetails"
-
-# querystring = {"localeCode":"en"}
-
-# payload = {
-#     "type": "pickup",
-#     "locale": "en",
-#     "id": "ChIJayiDCf0FGTkR2T-F1Jn-TSc",
-#     "provider": "google_places"
-# }
-
-
-# response = requests.request("POST", url, json=payload, headers=headers, params=querystring)
-
-# print(response.text)

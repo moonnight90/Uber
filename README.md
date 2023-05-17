@@ -68,6 +68,6 @@ To execute the script, follow these steps:
 
 # Output
 
-Once the script finishes running, any output or results generated will be displayed in the terminal or command prompt. The script may generate files, print information, or perform specific actions based on your origination and destination details.
+Once the script finishes running, results generated will be displayed in the terminal or command prompt. The script will generate database file in main directory `vehicles_data.sqlite3`.
 
 Congratulations! You have successfully set up the environment, configured the input, and executed the script. Now you can enjoy the informative and beautiful output provided by the script. Feel free to explore and modify the code to suit your needs.

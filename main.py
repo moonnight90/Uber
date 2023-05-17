@@ -1,12 +1,15 @@
 import requests
 from datetime import datetime
 import sqlite3
+import pandas as pd
+
 
 
 def create_vehicle_table(vehicle_type):
     cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS {vehicle_type} (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date_of_entry TEXT,
             time_of_entry TEXT,
             origination_address TEXT,
             destination_address TEXT,
@@ -17,11 +20,12 @@ def create_vehicle_table(vehicle_type):
     conn.commit()
 
 def insert_data(vehicle_type, origination, destination, min_price, max_price):
-    time_of_entry = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    date_of_entry = datetime.now().strftime('%Y-%m-%d')
+    time_of_entry = datetime.now().strftime('%H:%M:%S')
     cursor.execute(f'''
-        INSERT INTO {vehicle_type} (time_of_entry, origination_address, destination_address, min_price, max_price)
-        VALUES (?, ?, ?, ?, ?);
-    ''', (time_of_entry, origination, destination, min_price, max_price))
+        INSERT INTO {vehicle_type} (date_of_entry,time_of_entry, origination_address, destination_address, min_price, max_price)
+        VALUES (?, ?, ?, ?, ?, ?);
+    ''', (date_of_entry,time_of_entry, origination, destination, min_price, max_price))
     conn.commit()
 
 
@@ -58,9 +62,9 @@ class Uber():
         return min_max
 
 
-    def get_suggestions(self,query):
+    def get_suggestions(self,query,type):
         url = 'https://www.uber.com/api/loadFESuggestions?localeCode=en'
-        payload = {"type":"pickup","q":query,"locale":"en","lat":31.495426,"long":74.38436}
+        payload = {"type":type,"q":query,"locale":"en","lat":31.495426,"long":74.38436}
         res = self.ses.post(url,json=payload)
         cands = res.json()['data']['candidates']
         if len(cands):
@@ -81,7 +85,6 @@ class Uber():
         if res.status_code == 200:
             res = res.json()
             data = res['data']
-            
             return {
                 "id": data['id'],
                 "provider": data['provider'],
@@ -97,10 +100,12 @@ class Uber():
         for price in prices:
             yield (price['vehicleViewDisplayName'],price['fareString'])
     def run(self,pickup,destination):
-        res = self.get_suggestions(pickup)
-        pickup = self.get_detail('pickup',res['id'],res['provider'])
-        res = self.get_suggestions(destination)
-        destination = self.get_detail('destination',res['id'],res['provider'])
+        res_p = self.get_suggestions(pickup,"pickup")
+        res_d = self.get_suggestions(destination,"destination")
+        if not(res_p and res_d):
+            return None
+        pickup = self.get_detail('pickup',res_p['id'],res_p['provider'])
+        destination = self.get_detail('destination',res_d['id'],res_d['provider'])
         payload = {
             "destination":destination[0],
             'origin': pickup[0],
@@ -120,13 +125,10 @@ class Uber():
             
             
 if __name__ == "__main__":
-    
+    locations = pd.read_csv('input.csv').to_records()
+
     conn = sqlite3.connect('vehicles_data.sqlite3')
     cursor = conn.cursor()
     existed_tables = get_table_names()
-    Uber().run('Botany Road & Southern Cross','Belrose, NSW')
-
-
-        
-
-
+    for location in locations:
+        Uber().run(location[1],location[2])

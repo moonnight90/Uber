@@ -3,7 +3,7 @@ You have installed python.
 
 Open terminal in project main directory.
 
-Then install `requirements` by running following command `pip install -r        requirements.txt`
+Then install `requirements` by running following command `pip install -r requirements.txt`
 
 
 

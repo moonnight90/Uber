@@ -100,3 +100,15 @@ Once the script finishes running, results generated will be displayed in the ter
  class is called for each location to estimate Uber prices and store them in the database.
 
 Congratulations! You have successfully set up the environment, configured the input, and executed the script. Now you can enjoy the informative and beautiful output provided by the script. Feel free to explore and modify the code to suit your needs.
+
+## Note
+
+- Customize the input file name, input file columns, and SQLite database name according to your preference.
+
+- Adjust the table schema in the `create_vehicle_table` function if you want to modify the fields stored in the SQLite database.
+
+- Modify the `split_price` function if the fare string format returned by the Uber API changes.
+
+## Contributing
+
+If you find any issues or have suggestions for improvements, feel free to open an issue or submit a pull request. Contributions are always welcome!
